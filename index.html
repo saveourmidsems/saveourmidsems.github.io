@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>html{-webkit-text-size-adjust:100%}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Save Our Midsems</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A student-built tool for writing to ANU decision-makers about moving mid-semester exams into the teaching break.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..100,700..900&display=swap">
+<style>
+/* Layout: flat cobalt poster band up top, then a plain two-column form | email draft that stacks on phones. */
+:root {
+  --paper: #ffffff;
+  --surface: #f6f7f9;
+  --ink: #111418;
+  --muted: #5b6068;
+  --line: #d4d8de;
+  --band: #2140c4;
+  --band-ink: #ffffff;
+  --accent: #2140c4;
+  --accent-ink: #ffffff;
+  --warn: #b3261e;
+
+  --display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #131518; --surface: #1b1e23; --ink: #eceef1; --muted: #a3a9b3; --line: #30353d;
+    --band: #2140c4; --band-ink: #ffffff; --accent: #8fa4ff; --accent-ink: #131518; --warn: #ff8a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #131518; --surface: #1b1e23; --ink: #eceef1; --muted: #a3a9b3; --line: #30353d;
+  --band: #2140c4; --band-ink: #ffffff; --accent: #8fa4ff; --accent-ink: #131518; --warn: #ff8a80;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 1rem; line-height: 1.5; }
+.wrap {
+  max-width: 1100px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+a { color: var(--accent); }
+
+/* ---------- Poster band ---------- */
+.band { background: var(--band); color: var(--band-ink); }
+.band-in { padding-block: 32px 28px; display: grid; gap: 16px; }
+.kicker { font-size: .9rem; opacity: .85; margin: 0; }
+h1 {
+  font-family: var(--display);
+  font-stretch: 62%;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: clamp(3.2rem, 13vw, 7rem);
+  line-height: .86;
+  letter-spacing: -.005em;
+  margin: 0;
+}
+.lede { font-size: 1.08rem; max-width: 60ch; margin: 0; }
+
+.strip { display: grid; gap: 6px; max-width: 720px; margin-top: 6px; }
+.weeks { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); border: 1px solid rgba(255,255,255,.55); }
+.wk {
+  font-size: .75rem; text-align: center; padding-block: 7px; border-right: 1px solid rgba(255,255,255,.35);
+  font-variant-numeric: tabular-nums;
+}
+.wk:last-child { border-right: 0; }
+.wk.brk { grid-column: span 2; background: var(--band-ink); color: var(--band); font-weight: 800; letter-spacing: .06em; }
+.strip-cap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 16px; font-size: .82rem; opacity: .85; }
+
+/* ---------- Body ---------- */
+
+main.bench { display: grid; gap: 28px; padding-block: 30px 44px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 920px) {
+  main.bench { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: start; gap: 40px; }
+  .draft { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+}
+
+form { display: grid; gap: 26px; min-width: 0; }
+fieldset { border: 0; border-top: 2px solid var(--ink); margin: 0; padding: 10px 0 0; display: grid; gap: 12px; min-width: 0; }
+legend {
+  font-family: var(--display); font-stretch: 75%; font-weight: 800; text-transform: uppercase;
+  font-size: 1.35rem; letter-spacing: .01em; padding: 0 8px 0 0;
+}
+.hint { font-size: .9rem; color: var(--muted); margin: -4px 0 0; }
+
+.row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.field { display: grid; gap: 5px; min-width: 0; }
+.field > label, .lbl { font-weight: 700; font-size: .93rem; }
+.req { color: var(--warn); }
+input[type=text], select, textarea {
+  font: inherit; color: var(--ink); background: var(--paper);
+  border: 1px solid var(--muted); border-radius: 3px; padding: 8px 10px; width: 100%;
+}
+textarea { min-height: 100px; resize: vertical; }
+input[type=text]:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+input[type=checkbox], input[type=radio] { accent-color: var(--accent); width: 17px; height: 17px; margin: 2px 0 0; flex: none; }
+input[type=checkbox]:focus-visible, input[type=radio]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Checkbox lists (markup from script keeps the .chip name) */
+.chips { display: grid; gap: 6px 18px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.chip { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; font-size: .95rem; }
+.chip input:disabled + span { color: var(--muted); text-decoration: line-through; }
+
+.seg { display: flex; flex-wrap: wrap; gap: 6px 22px; }
+.seg label { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; font-weight: 700; }
+
+.people { display: grid; border-top: 1px solid var(--line); }
+.person {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 10px; align-items: start;
+  padding: 7px 0; border-bottom: 1px solid var(--line); cursor: pointer;
+}
+.person input { grid-row: span 2; }
+.person b { font-weight: 600; }
+.person small { color: var(--muted); font-size: .84rem; }
+.person code { font-family: var(--mono); font-size: .78rem; word-break: break-all; }
+.more { border-top: 2px solid var(--ink); padding-top: 10px; }
+.more summary { cursor: pointer; font-family: var(--display); font-stretch: 75%; font-weight: 800; text-transform: uppercase; font-size: 1.35rem; }
+.more summary span { font-family: var(--body); font-stretch: 100%; text-transform: none; font-weight: 400; font-size: .95rem; color: var(--muted); }
+.more summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.more-in { display: grid; gap: 16px; padding-top: 12px; }
+#uses .chip { font-size: 1.02rem; }
+.check { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+
+/* ---------- Email draft ---------- */
+.draft { background: var(--surface); border: 1px solid var(--line); min-width: 0; display: grid; }
+.draft-head {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 10px 14px; border-bottom: 1px solid var(--line);
+}
+.draft-head h2 { font-family: var(--display); font-stretch: 75%; font-weight: 800; text-transform: uppercase; font-size: 1.2rem; margin: 0; }
+.hdrs { display: grid; border-bottom: 1px solid var(--line); background: var(--paper); }
+.hdr {
+  display: grid; grid-template-columns: 4.4em minmax(0, 1fr) auto; gap: 10px; align-items: start;
+  padding: 7px 14px; border-bottom: 1px solid var(--line);
+}
+.hdr:last-child { border-bottom: 0; }
+.hdr .k { font-size: .85rem; color: var(--muted); padding-top: 2px; }
+.hdr .v { font-size: .9rem; word-break: break-word; min-width: 0; }
+.hdr .v.addr { font-family: var(--mono); font-size: .78rem; padding-top: 3px; }
+.hdr .v.subj { font-weight: 700; }
+.letter {
+  margin: 0; padding: 16px 14px 20px; white-space: pre-wrap; word-break: break-word; background: var(--paper);
+  font-family: var(--body); font-size: .95rem; line-height: 1.55; max-height: 62vh; overflow-y: auto; min-width: 0;
+}
+.letter mark { background: #ffe680; color: #111418; padding: 0 2px; }
+
+.actions { display: grid; gap: 10px; padding: 12px 14px 14px; border-top: 1px solid var(--line); }
+.status { font-size: .9rem; margin: 0; color: var(--muted); min-height: 1.4em; }
+.status.bad { color: var(--warn); font-weight: 700; }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn {
+  font: inherit; font-weight: 700; font-size: .92rem; border-radius: 3px; padding: 9px 13px; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--paper); color: var(--accent); text-decoration: none;
+  display: inline-flex; align-items: center; line-height: 1.2;
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn:hover { text-decoration: underline; }
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.btn[aria-disabled="true"] { opacity: .4; pointer-events: none; }
+.btn.sm { padding: 3px 8px; font-size: .8rem; font-weight: 600; }
+.fine { font-size: .84rem; color: var(--muted); margin: 0; }
+.addr-inline { font-family: var(--mono); font-size: .8rem; word-break: break-all; color: var(--ink); }
+
+footer { border-top: 1px solid var(--line); padding-block: 18px 34px; font-size: .86rem; color: var(--muted); display: grid; gap: 6px; }
+footer p { margin: 0; max-width: 72ch; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: var(--ink); color: var(--paper); padding: 8px 14px; border-radius: 3px; font-weight: 700; font-size: .9rem;
+  opacity: 0; transition: opacity .15s; pointer-events: none; z-index: 20;
+}
+.toast.on { opacity: 1; }
+
+@media (max-width: 480px) {
+  .wk { font-size: .62rem; }
+  .hdr { grid-template-columns: 3.6em minmax(0, 1fr) auto; padding-inline: 10px; }
+  .letter { padding-inline: 10px; max-height: none; }
+}
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+</head>
+<body>
+<header class="band">
+  <div class="wrap band-in">
+    <h1>Save our midsems</h1>
+    <p class="lede">ANU wants to move mid-semester exams into the teaching break from 2027, without asking students.</p>
+    <div class="strip" aria-label="Semester 1, 2027: teaching weeks 1 to 6, a two-week teaching break from 5 to 16 April, then weeks 7 to 12.">
+      <div class="weeks" aria-hidden="true">
+        <div class="wk">1</div><div class="wk">2</div><div class="wk">3</div><div class="wk">4</div><div class="wk">5</div><div class="wk">6</div>
+        <div class="wk brk">BREAK</div>
+        <div class="wk">7</div><div class="wk">8</div><div class="wk">9</div><div class="wk">10</div><div class="wk">11</div><div class="wk">12</div>
+      </div>
+      <div class="strip-cap"><span>Semester 1, 2027</span><span>Break: 5–16 April</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <main class="bench">
+    <form id="f" novalidate>
+      <fieldset>
+        <legend>What do you use the break for?</legend>
+        <div class="chips" id="uses" role="group" aria-label="What you use the break for"></div>
+        <label class="check" for="plans"><input type="checkbox" id="plans"><span>I've already made plans for the April 2027 break</span></label>
+      </fieldset>
+
+      <fieldset>
+        <legend><label for="name">Your first name</label></legend>
+        <input type="text" id="name" autocomplete="given-name" placeholder="e.g. Alex">
+      </fieldset>
+
+      <fieldset>
+        <legend>Send it to</legend>
+        <div class="seg" role="radiogroup" aria-label="Recipient list">
+          <label for="mode-key"><input type="radio" name="mode" id="mode-key" value="key" checked><span>Key decision-makers (<span id="nKey"></span>)</span></label>
+          <label for="mode-aqac"><input type="radio" name="mode" id="mode-aqac" value="aqac"><span>Key decision-makers and AQAC (<span id="nAll"></span>)</span></label>
+        </div>
+      </fieldset>
+
+      <details class="more" id="more">
+        <summary>Make it more personal</summary>
+        <div class="more-in">
+          <div class="row">
+            <div class="field">
+              <label for="stage">Year of study</label>
+              <select id="stage">
+                <option value="">Prefer not to say</option>
+                <option value="first-year undergraduate student">First-year undergraduate</option>
+                <option value="second-year undergraduate student">Second-year undergraduate</option>
+                <option value="third-year undergraduate student">Third-year undergraduate</option>
+                <option value="later-year undergraduate student">Fourth year or later (undergraduate)</option>
+                <option value="postgraduate coursework student">Postgraduate coursework</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="college">College</label>
+              <select id="college">
+                <option value="">Prefer not to say</option>
+                <option>College of Arts and Social Sciences</option>
+                <option>College of Asia and the Pacific</option>
+                <option>College of Business and Economics</option>
+                <option>College of Law, Governance and Policy</option>
+                <option>College of Science and Medicine</option>
+                <option>College of Systems and Society</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <span class="lbl" id="idLbl">Any of these apply?</span>
+            <div class="chips" id="ident" role="group" aria-labelledby="idLbl"></div>
+          </div>
+          <div class="field">
+            <label for="own">In your own words</label>
+            <textarea id="own" placeholder="How would this affect you?"></textarea>
+          </div>
+          <div class="field">
+            <label for="uid">Student number</label>
+            <input type="text" id="uid" autocomplete="off" placeholder="u1234567">
+          </div>
+        </div>
+      </details>
+    </form>
+
+    <section class="draft" aria-labelledby="draftTitle">
+      <div class="draft-head">
+        <h2 id="draftTitle">Your letter</h2>
+        <button type="button" class="btn sm" id="reword">Reword</button>
+      </div>
+      <div class="hdrs">
+        <div class="hdr"><span class="k">To</span><span class="v addr" id="oTo"></span><button type="button" class="btn sm" data-copy="to">Copy</button></div>
+        <div class="hdr" id="ccRow"><span class="k">Cc</span><span class="v addr" id="oCc"></span><button type="button" class="btn sm" data-copy="cc">Copy</button></div>
+        <div class="hdr"><span class="k">Subject</span><span class="v subj" id="oSubj"></span><button type="button" class="btn sm" data-copy="subject">Copy</button></div>
+      </div>
+      <pre class="letter" id="oBody" aria-live="polite"></pre>
+      <div class="actions">
+        <p class="status" id="status"></p>
+        <div class="btns">
+          <a class="btn primary" id="outlookApp" hidden>Open in Outlook app</a>
+          <a class="btn primary" id="mailto">Open in email app</a>
+          <button type="button" class="btn" data-copy="body">Copy letter</button>
+        </div>
+        <p class="fine">Use your ANU email. If a button doesn't work, copy and paste instead. Letters sent from these buttons are Bcc'd to the campaign so we can count them.</p>
+      </div>
+    </section>
+  </main>
+
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  /* ===== Config: edit recipients here =====
+     key:  shown in the "Key decision-makers" list
+     aqac: role on the Academic Quality Assurance Committee (null = not a member)
+     Addresses follow ANU's firstname.lastname@anu.edu.au pattern. */
+  // Campaign inbox: Bcc'd on every letter so sends can be counted
+  const BCC_EMAIL = "sa.gensec+midsems-campaign@anu.edu.au";
+
+  const RECIPIENTS = [
+    { id: "davies",   title: "Associate Professor", surname: "Davies",    full: "Associate Professor Mathew Davies",  key: "Interim Deputy Vice-Chancellor (Education) and Chair, AQAC", aqac: "Chair; Pro Vice-Chancellor (Academic Quality)", email: "mathew.davies@anu.edu.au", cc: true },
+    { id: "dvceoffice", title: "", surname: "", full: "Office of the Deputy Vice-Chancellor (Education)", key: "DVC (Education) office mailbox", aqac: null, email: "office.dvce@anu.edu.au" },
+    { id: "mckinnon", title: "Professor",           surname: "McKinnon",  full: "Professor Merryn McKinnon",          key: "Pro Vice-Chancellor (Learning and Teaching)", aqac: "Deputy Chair; Pro Vice-Chancellor (Learning and Teaching)", email: "merryn.mckinnon@anu.edu.au", cc: true },
+    { id: "pvcoffice", title: "",                   surname: "",          full: "Office of the PVC (Learning and Teaching)", key: "PVC (Learning and Teaching) mailbox", aqac: null, email: "pvc.ed@anu.edu.au" },
+    { id: "pearsall", title: "Mr",                  surname: "Pearsall",  full: "Mr Scott Pearsall",                  key: "University Registrar", aqac: "University Registrar", email: "scott.pearsall@anu.edu.au", cc: true },
+    { id: "registrar", title: "",                   surname: "",          full: "University Registrar",               key: "Registrar mailbox", aqac: null, email: "registrar@anu.edu.au" },
+    { id: "examsoffice", title: "",                 surname: "",          full: "Enrolments and Fees Manager",        key: "Examinations mailbox", aqac: null, email: "enrolmentsfees.manager@anu.edu.au" },
+    { id: "zhuang",   title: "",                    surname: "Zhuang",    full: "Wendy Zhuang",                       key: "Associate Director, Examinations", aqac: null, email: "wendy.zhuang@anu.edu.au", cc: true },
+    { id: "abchair",  title: "",                    surname: "",          full: "Chair, Academic Board",              key: "Academic Board Chair mailbox", aqac: null, email: "chair.ab@anu.edu.au" },
+    { id: "biddle",   title: "Professor",           surname: "Biddle",    full: "Professor Nicholas Biddle",          key: "Chair, Academic Board", aqac: null, email: "nicholas.biddle@anu.edu.au", cc: true },
+    { id: "bettman",  title: "Associate Professor", surname: "Bettman",   full: "Associate Professor Jenni Bettman",  key: null, aqac: "Dean of Students", email: "jenni.bettman@anu.edu.au" },
+    { id: "shekhar",  title: "Mr",                  surname: "Shekhar",   full: "Mr Rishen Shekhar",                  key: null, aqac: "Pro Vice-Chancellor (International and Future Students)", email: "rishen.shekhar@anu.edu.au" },
+    { id: "beckman",  title: "Dr",                  surname: "Beckman",   full: "Dr Juliey Beckman",                  key: null, aqac: "College Representative, Science and Medicine", email: "juliey.beckman@anu.edu.au" },
+    { id: "cliff",    title: "Associate Professor", surname: "Cliff",     full: "Associate Professor Tom Cliff",      key: null, aqac: "College Representative, Asia and the Pacific", email: "tom.cliff@anu.edu.au" },
+    { id: "difrancesco", title: "Associate Professor", surname: "Di Francesco", full: "Associate Professor Michael Di Francesco", key: null, aqac: "College Representative, Law, Governance and Policy", email: "michael.difrancesco@anu.edu.au" },
+    { id: "kyburz",   title: "Professor",           surname: "Kyburz",    full: "Professor Penny Kyburz",             key: null, aqac: "College Representative, Systems and Society", email: "penny.kyburz@anu.edu.au" },
+    { id: "hanna",    title: "Dr",                  surname: "Hanna",     full: "Dr Dana Hanna",                      key: null, aqac: "College Representative, Business and Economics", email: "dana.hanna@anu.edu.au" },
+    { id: "molland",  title: "Associate Professor", surname: "Molland",   full: "Associate Professor Sverre Molland", key: null, aqac: "College Representative, Arts and Social Sciences", email: "sverre.molland@anu.edu.au" },
+    { id: "flanagan", title: "Ms",                  surname: "Flanagan",  full: "Ms Liza Flanagan",                   key: null, aqac: "College General Manager", email: "liza.flanagan@anu.edu.au" },
+    { id: "sheppard", title: "Associate Professor", surname: "Sheppard",  full: "Associate Professor Jill Sheppard",  key: null, aqac: "Academic Board member", email: "jill.sheppard@anu.edu.au" },
+    { id: "ramanayake", title: "Mr",                surname: "Ramanayake", full: "Mr Samitha (Sami) Ramanayake",      key: null, aqac: "Professional Staff Member", email: "samitha.ramanayake@anu.edu.au" },
+    { id: "foley",    title: "Mr",                  surname: "Foley",     full: "Mr Tom Foley",                       key: null, aqac: "Interim University Librarian", email: "tom.foley@anu.edu.au" },
+    { id: "martin",   title: "Professor",           surname: "Martin",    full: "Professor Anne Martin",              key: null, aqac: "Director, Tjabal Indigenous Higher Education Centre", email: "anne.martin@anu.edu.au" },
+    { id: "hilton",   title: "Ms",                  surname: "Hilton",    full: "Ms Richelle Hilton",                 key: null, aqac: "Chief Planning, Data and Analytics Officer", email: "richelle.hilton@anu.edu.au" },
+    { id: "shaw",     title: "Ms",                  surname: "Shaw",      full: "Ms Alex Shaw",                       key: null, aqac: "Senior Manager, Admissions and Scholarships", email: "alex.shaw@anu.edu.au" },
+    { id: "rawson",   title: "Ms",                  surname: "Rawson",    full: "Ms Cait Rawson",                     key: null, aqac: "Associate Director, Compliance", email: "cait.rawson@anu.edu.au" },
+    { id: "kennedy",  title: "Ms",                  surname: "Kennedy",   full: "Ms Lisa Kennedy",                    key: null, aqac: "Interim Director, Experience, Wellbeing and Inclusion", email: "director.university.experience@anu.edu.au" },
+    { id: "weliamuna",title: "",                    surname: "Weliamuna", full: "Chith Weliamuna",                    key: null, aqac: "Student Representative (ANUSA Undergraduate Coursework Officer)", email: "sa.undergraduate@anu.edu.au" },
+    { id: "hassan",   title: "",                    surname: "Hassan",    full: "Kamal Hassan",                       key: null, aqac: "Student Representative (ANUSA Postgraduate Coursework Officer)", email: "sa.postgraduate@anu.edu.au" },
+    { id: "blaustein",title: "Associate Professor", surname: "Blaustein", full: "Associate Professor Jarrett Blaustein", key: null, aqac: "Academic member appointed by the Chair", email: "jarrett.blaustein@anu.edu.au" }
+  ];
+
+
+  const USES = [
+    { id: "family", issue: "family",    label: "Visiting family",          text: "visit family" },
+    { id: "work",   issue: "work",      label: "Paid work",                text: "pick up extra shifts so I can cover rent and bills" },
+    { id: "study",  issue: "study",     label: "Catching up on study",     text: "catch up on readings and get ahead of major assessments" },
+    { id: "rest",   issue: "wellbeing", label: "Rest and mental health",   text: "rest and look after my mental health" },
+    { id: "place",  issue: "placement", label: "Placement or internship",  text: "complete placement, internship or volunteering commitments" },
+    { id: "care",   issue: "care",      label: "Caring for someone",       text: "meet my caring responsibilities" }
+  ];
+
+  const IDENT = [
+    { id: "intl", label: "I'm an international student", lines: [
+      "As an international student, the break is often my only realistic chance to see family during semester. Flights home are expensive and need to be booked months ahead, which is impossible if an exam could fall anywhere in those two weeks.",
+      "I am an international student, and my family is overseas. The teaching break is the one time during semester I can afford to fly home, but only if I can book in advance with confidence. Exams in the break would take that away."
+    ] },
+    { id: "regional", label: "I'm from a regional or rural area", lines: [
+      "I am from a regional area. Getting home is a long and expensive trip, and the mid-semester break is the only window during semester long enough to make it worthwhile. An exam in the middle of it would leave me without time at home for the whole semester.",
+      "As a regional student, going home takes real time and money. The two-week break is what makes that trip possible during semester, and it is when I reconnect with family, community and work back home."
+    ] },
+    { id: "disabled", label: "I'm a disabled student", lines: [
+      "As a disabled student, I rely on the break to manage my health, attend appointments and recover from the first half of semester. Exams in the break, at uncertain times, would make that much harder, on top of the work already involved in arranging exam adjustments.",
+      "I am a disabled student. The break is when I catch up on medical appointments and recover so I can manage the rest of semester. Losing it, or not knowing which days I will have, puts students like me at a further disadvantage."
+    ] }
+  ];
+
+  const ISSUES = [
+    { id: "consult", label: "No student consultation",
+      primary: [
+        "Above all, a change of this scale has been developed without consulting students. The teaching break is a fixed point that students build their semesters around, and it should not be redesigned without hearing from the people who rely on it.",
+        "My greatest concern is that students have not been consulted. Changing what the mid-semester break is for affects every student who sits a centrally supported exam, and we deserve a say before a decision is made, not after it.",
+        "I was never asked about this change, and as far as I can tell, neither were other students. Changing what the break is for affects every student who sits a centrally supported exam, and we deserve a say before a decision is made."
+      ],
+      extra: [
+        "ANUSA is ready to work with the University on this. Student wellbeing should be part of the design of major structural changes from the start, not an afterthought.",
+        "Students should be partners in decisions about how our semester is structured. Consulting us now, before anything is locked in, would show that student wellbeing is being taken seriously."
+      ],
+      secondary: [
+        "A change of this scale is being made without consulting the students it affects.",
+        "Students have not been consulted, and on a change this large we should have been.",
+        "I was never asked about this, and I should have been."
+      ] },
+    { id: "wellbeing", label: "Student wellbeing and mental health",
+      primary: [
+        "My main concern is student wellbeing. The break falls at the most demanding point of the semester, just as assessments begin to pile up. Without a genuine pause, students will go from week 1 to the end of exams without a real chance to recover, and burnout will rise.",
+        "The mid-semester break exists to protect student wellbeing. It is the one point in a long semester where students can rest, reset and catch up. Filling it with exams removes that protection at the time students need it most.",
+        "For me, the break is what makes the rest of semester manageable. By the middle of semester I am worn down, and those two weeks are when I rest and recover. If exams go inside it, I lose the only real pause I get."
+      ],
+      extra: [
+        "We have seen what happens when wellbeing is treated as an afterthought in major decisions, and the University should not repeat that here.",
+        "Any change to the structure of the semester should be assessed for its effect on student mental health before it goes ahead."
+      ],
+      secondary: [
+        "Exams in the break would remove the one real pause in the semester, which many students need to protect their mental health.",
+        "Students would lose the only point in semester where they can properly rest and recover.",
+        "I would lose the only real chance I get to rest during semester."
+      ] },
+    { id: "work", label: "Work and the cost of living",
+      primary: [
+        "Many students use the break to work. With the cost of living in Canberra as high as it is, extra shifts during the break are how a lot of students keep up with rent and bills. Exams in the break would force students to choose between their income and their assessment.",
+        "For many students, the break is when they earn the money that gets them through the rest of semester. Scheduling exams in it, with no certainty about the date, makes it impossible to commit to shifts, and it hits hardest the students already struggling with the cost of living.",
+        "I work during the break to cover rent and bills, and those extra shifts carry me through the rest of semester. If exams can fall anywhere in those two weeks, I cannot commit to shifts, and I lose income I rely on."
+      ],
+      extra: [
+        "Employers need notice. If students do not know when their exams will be until late in semester, they cannot plan work around them.",
+        "Students who work to support themselves should not be penalised for it by the way the semester is structured."
+      ],
+      secondary: [
+        "Students who work through the break to cover rent and living costs would be put in an impossible position.",
+        "It would be much harder for students who rely on working during the break to make ends meet.",
+        "I would lose shifts I rely on to cover rent and bills."
+      ] },
+    { id: "family", label: "Visiting family and travel home",
+      primary: [
+        "The break is often the only time during semester that students from interstate, regional areas and overseas can go home. An exam in the middle of it, or even the possibility of one, rules that out.",
+        "For students whose families live interstate, in regional Australia or overseas, the teaching break is the one chance to go home during semester. Placing exams inside it makes that trip impossible or forces students to cut it short.",
+        "The break is often the only time during semester I can get home to my family. With an exam somewhere in those two weeks, or even the chance of one, I would not be able to plan that trip."
+      ],
+      extra: [
+        "International students are hit hardest. Flights home are expensive and need to be booked well in advance, which is not possible without knowing when exams will fall.",
+        "Time with family is not a luxury. For many students far from home it is what keeps them going through semester."
+      ],
+      secondary: [
+        "Students who travel home during the break, including interstate and international students, would lose that chance.",
+        "Students from interstate, regional areas and overseas would lose their only chance to see family during semester.",
+        "I would lose my only chance during semester to see my family."
+      ] },
+    { id: "uncertain", label: "No certainty about when exams fall",
+      primary: [
+        "In practice, this proposal turns a 12-week semester with a two-week break into a 14-week semester with no certainty about when exams will fall. Students would not be able to plan anything in those two weeks until the exam timetable is released.",
+        "The proposal effectively stretches a 12-week semester with a two-week break into a 14-week block with no fixed point for exams. That uncertainty makes it impossible for students to plan work, travel, caring or study around the break.",
+        "If this goes ahead, I will not know until partway through semester which days of the break I will lose. That makes it impossible for me to plan work, travel or anything else around it."
+      ],
+      extra: [
+        "Students plan their year around the published academic calendar. Changing what the break means after those plans are made undermines trust in the calendar itself.",
+        "Certainty matters most for students with the least flexibility: those who work, care for others, or live far from family.",
+        "The published 2027 calendar already sets two mid-semester exam weeks, starting 29 March and 19 April, either side of the break. Students have planned around those dates."
+      ],
+      secondary: [
+        "Students would not know when their exams fall across a 14-week stretch, which makes planning anything around the break impossible.",
+        "It would replace a predictable break with two weeks of uncertainty about when exams will fall.",
+        "I would not know which days of the break I would lose until the timetable came out."
+      ] },
+    { id: "evidence", label: "Weak justification and no public data",
+      primary: [
+        "I understand the justification is a shortage of venues for growing demand for centrally supported mid-semester exams, along with a proposal to lower the threshold for central support from 100 to 20 students. But no projections of that demand, or of venue capacity in Semester 1, 2027, have been made public. A change this large should not go ahead on evidence students cannot see.",
+        "The case for this change rests on venue shortages and a plan to lower the enrolment threshold for centrally supported exams from 100 to 20 students. There is little published data on what the extra demand looks like or why the break is the only answer. Students deserve to see the numbers before their break is taken.",
+        "I have not seen any evidence that moving exams into the break is necessary. I understand the reasoning is a shortage of venues and a plan to lower the threshold for central support from 100 to 20 students, but no figures on demand or capacity for 2027 have been published."
+      ],
+      extra: [
+        "If demand is growing, the University should show by how much, and why the break is the only place to put it.",
+        "If the problem is venue capacity, the data on that capacity should be shared so that alternatives can be properly considered."
+      ],
+      secondary: [
+        "The University has not published the demand and capacity data behind the proposal.",
+        "There is no public evidence on what the extra demand for centrally supported exams actually looks like.",
+        "I have not seen any published data showing this change is necessary."
+      ] },
+    { id: "study", label: "Catching up on study",
+      primary: [
+        "The break is when students catch up. By the middle of semester most of us are behind on readings and facing the first big assessments, and the break is what lets us recover ground. Filling it with exams sends students into the second half of semester further behind.",
+        "Students use the break to catch up on readings and get ahead of the major assessments due in the second half of semester. Exams inside the break would take that time and push more work into weeks that are already crowded.",
+        "I use the break to catch up. By the middle of semester I am usually behind on readings and facing my first big assessments, and those two weeks are how I get back on top of things. Exams in the break would send me into the second half of semester further behind."
+      ],
+      extra: [
+        "Exams in the break do not add study time. They take it away.",
+        "It makes little sense to examine students in the one fortnight set aside for them to consolidate what they have learned."
+      ],
+      secondary: [
+        "Students who use the break to catch up on study would lose that time.",
+        "It would take away the time students use to catch up before the second half of semester.",
+        "I would lose the time I use to catch up on study."
+      ] },
+    { id: "placement", label: "Placements and internships",
+      primary: [
+        "Many students use the break for placements, internships and volunteering that cannot fit around teaching weeks. These are often arranged months ahead with outside organisations, and an exam in the break would force students to pull out or miss an assessment.",
+        "Placements, internships and volunteering often run in the break because it is the only gap in the teaching calendar. Organisations plan them well ahead, and students cannot move them around an exam timetable released partway through semester.",
+        "I use the break for placement, internship or volunteering commitments that cannot fit around teaching weeks. These are arranged well ahead with outside organisations, and an exam in the break would force me to pull out or miss an assessment."
+      ],
+      extra: [
+        "These opportunities matter for students' careers, and nobody should have to choose between them and their marks.",
+        "Losing them costs students experience and contacts that are hard to get any other way."
+      ],
+      secondary: [
+        "Students with placements, internships or volunteering in the break would face clashes they cannot easily resolve.",
+        "Placements and internships arranged for the break would clash with exams.",
+        "My placement or internship commitments in the break would clash with exams."
+      ] },
+    { id: "care", label: "Caring responsibilities",
+      primary: [
+        "Students with caring responsibilities plan care around the academic calendar, and the break gives them room to meet those responsibilities. Exams scheduled inside it, at times that cannot be predicted, would make arranging care very difficult.",
+        "For student carers and parents, the break is when caring responsibilities that do not fit around teaching weeks get done. Unpredictable exams in that window would put that planning at risk.",
+        "I have caring responsibilities, and I plan care around the academic calendar. The break gives me room to meet them. Exams inside it, at times I cannot predict, would make arranging care very difficult."
+      ],
+      extra: [
+        "Arranging care takes notice, and an exam timetable released partway through semester does not give it.",
+        "Student carers already juggle more than most, and this change would add to that."
+      ],
+      secondary: [
+        "Students with caring responsibilities would find it much harder to arrange care.",
+        "Student carers and parents would lose the time they rely on to meet caring responsibilities.",
+        "I would find it much harder to arrange care."
+      ] }
+  ];
+
+  const SUBJECTS = [
+    "Please keep exams out of the mid-semester break",
+    "Student concern: mid-semester exams in the 2027 teaching break",
+    "Save our mid-semester break: please consult students first",
+    "Opposing mid-semester exams in the teaching break from S1 2027",
+    "Don't move mid-semester exams into the teaching break",
+    "Mid-semester exams in the teaching break",
+    "Please reconsider mid-sem exams in the break",
+    "Concern about the 2027 mid-semester break",
+    "Keep the teaching break free of exams",
+    "Request to pause changes to mid-semester exams",
+    "Exams in the April 2027 break",
+    "Mid-sem exams and the teaching break",
+    "Mid-sem break exams",
+    "Feedback on moving mid-sem exams into the break",
+    "Concerns about mid-semester exam scheduling",
+    "Please don't schedule exams in the mid-sem break",
+    "The mid-semester break should stay a break",
+    "Proposed change to mid-semester exams",
+    "Mid-semester exam changes for 2027",
+    "Student feedback: exams in the teaching break",
+    "Keep the mid-sem break exam-free",
+    "Moving midsems into the break",
+    "Concern from an ANU student about mid-sem exams",
+    "Please consult students on mid-semester exams",
+    "Teaching break exams from Semester 1, 2027",
+    "Why the mid-semester break matters",
+    "Exams during the teaching break?",
+    "Mid-semester break changes",
+    "Objection to exams in the mid-semester break",
+    "A student's view on mid-sem exams in the break",
+    "Please protect the mid-semester break",
+    "Midsem exams in the break: a request"
+  ];
+  const TOPICS = [
+    "I am writing to ask the University not to move centrally supported mid-semester examinations into the mid-semester teaching break from Semester 1, 2027.",
+    "I have learned that the University intends to schedule mid-semester examinations within the teaching break from Semester 1, 2027, and I am writing to oppose this change.",
+    "I want to register my opposition to the proposal to hold mid-semester exams during the mid-semester break, beginning in Semester 1, 2027.",
+    "I was very concerned to hear that the University is planning to hold mid-semester exams in the teaching break from next year.",
+    "I am writing about the plan to move centrally supported mid-semester exams into the mid-semester break from Semester 1, 2027.",
+    "I recently found out that mid-semester exams may be moved into the teaching break from 2027, and I do not think this should go ahead."
+  ];
+  const ASK_FIRST = [
+    "I am writing to ask that the plan to hold mid-semester exams in the teaching break be paused until students have been properly consulted.",
+    "Please do not put mid-semester exams in the teaching break, at least not without consulting students first.",
+    "I am asking the University to drop, or at least pause, the plan to hold mid-semester exams in the teaching break from Semester 1, 2027."
+  ];
+  const USE_LEADS = ["The break is not spare time for me. I use it to", "Like many students, I rely on the break. I use it to", "For me, the mid-semester break is essential. It is when I", "I use those two weeks to", "In the break I usually"];
+  const USE_TAILS = ["An exam in the middle of it would mean giving up at least one of these.", "Putting exams inside the break would take that away.", "Exams in the break would make that impossible.", "I do not see how I could do that with exams in the way.", ""];
+  const PLANS_LINE = ["I have already made plans for the April 2027 break, and this change would put them at risk.", "My plans for the April 2027 break are already in place, and this change would upend them.", "I have already planned around the April 2027 break."];
+  const SEC_LEADS = ["I also have wider concerns about the proposal.", "This is not the only problem with the proposal.", "There are other problems too.", "", "Beyond this, I am concerned that:", "A few other things worry me:"];
+  const ASKS = [
+    { list: ["Pause any plan to hold mid-semester exams in the teaching break from Semester 1, 2027.", "Put the change on hold for Semester 1, 2027."],
+      prose: ["pause the plan for Semester 1, 2027", "put this change on hold"] },
+    { list: ["Consult students properly, through ANUSA and the student members of Academic Board, before any change to exam scheduling.", "Talk to students, through ANUSA, before changing how exams are scheduled."],
+      prose: ["consult students properly before changing anything", "talk to ANUSA and students before going further"] },
+    { list: ["Publish the demand and capacity data behind the proposal.", "Release the numbers on exam demand and venue capacity for 2027."],
+      prose: ["publish the data behind the proposal", "share the demand and capacity figures"] },
+    { list: ["Commit that the mid-semester break remains free of examinations.", "Keep the teaching break exam-free."],
+      prose: ["keep the break free of exams", "commit to an exam-free teaching break"] }
+  ];
+  const ASK_LEADS = ["I ask the University to:", "Specifically, I am asking the University to:", "I urge the University to:", "What I would like to see:"];
+  const ASK_PROSE = ["I would ask the University to", "Please", "At the very least, I hope the University will", "I urge the University to"];
+  const CLOSES = [
+    "Thank you for considering my concerns. I would welcome a response explaining how student views will be taken into account before this decision is made.",
+    "Thank you for your time. I would appreciate a reply setting out how students will be consulted before any decision is made.",
+    "Thank you for reading my letter. I hope to hear how the University will involve students before this change goes any further.",
+    "Thank you for your time.",
+    "I hope you will reconsider.",
+    "Thanks for reading. I would appreciate a reply."
+  ];
+  const SIGNOFFS = ["Kind regards,", "Yours sincerely,", "Regards,", "Best,", "Best regards,", "Warm regards,", "Sincerely,", "Cheers,", "All the best,", "With regards,"];
+  const GROUP_GREETS = {
+    key:  ["Dear members of the ANU leadership,", "Dear University leadership,", "Dear all,"],
+    aqac: ["Dear members of the ANU leadership and the Academic Quality Assurance Committee,", "Dear University leaders and AQAC members,", "Dear all,"]
+  };
+  const SHAPES = ["standard", "personal", "short", "askfirst"];
+  const CONTRACT = [[/\bI am\b/g, "I'm"], [/\bdo not\b/g, "don't"], [/\bDo not\b/g, "Don't"], [/\bcannot\b/g, "can't"], [/\bwould not\b/g, "wouldn't"], [/\bis not\b/g, "isn't"], [/\bhave not\b/g, "haven't"], [/\bIt is\b/g, "It's"], [/\bit is\b/g, "it's"], [/\bI have\b/g, "I've"], [/\bI would\b/g, "I'd"], [/\bdoes not\b/g, "doesn't"], [/\bare not\b/g, "aren't"], [/\bwill not\b/g, "won't"], [/\bwere not\b/g, "weren't"]];
+  const EXPAND = [[/\bI'm\b/g, "I am"], [/\bdon't\b/g, "do not"], [/\bDon't\b/g, "Do not"], [/\bcan't\b/g, "cannot"], [/\bI'd\b/g, "I would"], [/\bI've\b/g, "I have"], [/\bIt's\b/g, "It is"], [/\bisn't\b/g, "is not"], [/\bweren't\b/g, "were not"]];
+
+  /* ===== Seeded wording =====
+     Each visitor gets a random seed, saved in localStorage and a cookie, so their
+     letter keeps the same wording across edits and reloads. "Reword" draws a new seed. */
+  const SEED_KEY = "som_seed";
+  const newSeed = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  function readSeed() {
+    try { const v = localStorage.getItem(SEED_KEY); if (v) return v; } catch (_) {}
+    try { const m = document.cookie.match(/(?:^|;\s*)som_seed=([^;]+)/); if (m) return decodeURIComponent(m[1]); } catch (_) {}
+    return null;
+  }
+  function writeSeed(v) {
+    try { localStorage.setItem(SEED_KEY, v); } catch (_) {}
+    try { document.cookie = `${SEED_KEY}=${encodeURIComponent(v)}; max-age=31536000; path=/; SameSite=Lax`; } catch (_) {}
+  }
+  let seed = readSeed();
+  if (!seed) { seed = newSeed(); writeSeed(seed); }
+  // FNV-1a 32-bit hash: same seed + key always gives the same number
+  const hash = (str) => { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); } return h >>> 0; };
+  const pick = (key, arr) => arr[hash(seed + ":" + key) % arr.length];
+  const chance = (key, p) => hash(seed + "?" + key) / 4294967296 < p;
+  const shuffled = (arr, key) => arr.slice().sort((a, b) => hash(seed + key + a.id) - hash(seed + key + b.id));
+
+  const $ = (id) => document.getElementById(id);
+  // Oxford comma when items themselves contain "and", so "rest and recover, and visit family" stays readable
+  const listJoinOx = (a) => a.length < 2 ? (a[0] || "") : a.slice(0, -1).join(", ") + (a.length > 2 || a.some(x => / and /.test(x)) ? ", and " : " and ") + a[a.length - 1];
+  const listJoin = (a) => a.length <= 1 ? (a[0] || "") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
+
+  /* ===== Build controls ===== */
+  const chip = (group, id, label, checked) =>
+    `<label class="chip"><input type="checkbox" id="${group}-${id}" value="${id}"${checked ? " checked" : ""}><span>${label}</span></label>`;
+  $("uses").innerHTML = USES.map(u => chip("use", u.id, u.label)).join("");
+  $("ident").innerHTML = IDENT.map(i => chip("id", i.id, i.label)).join("");
+
+  const mode = () => ($("mode-aqac").checked ? "aqac" : "key");
+
+  const checked = (sel) => [...document.querySelectorAll(sel + " input:checked")].map(i => i.value);
+
+  /* ===== Compose ===== */
+  let current = { to: "", cc: "", bcc: "", subject: "", body: "" };
+
+  function compose() {
+    const name = $("name").value.trim();
+    const uid = $("uid").value.trim();
+    const stage = $("stage").value;
+    const college = $("college").value;
+    const idents = checked("#ident");
+    const plans = $("plans").checked;
+    const uses = checked("#uses");
+    // What they use the break for decides the argument: one use leads, up to
+    // three more become supporting points, and consultation is always made.
+    const useIssues = shuffled(USES.filter(u => uses.includes(u.id)), "lead").map(u => u.issue);
+    const primaryId = useIssues[0] || "consult";
+    const secIds = [...useIssues.slice(1, 4)];
+    if (primaryId !== "consult") secIds.push("consult");
+    if (chance("gen-uncertain", 0.55)) secIds.push("uncertain");
+    if (chance("gen-evidence", 0.55)) secIds.push("evidence");
+    const own = $("own").value.trim();
+    const recips = RECIPIENTS.filter(r => r.key || (mode() === "aqac" && r.aqac));
+    // cc: true people (Mathew Davies) are copied rather than addressed
+    const toList = recips.filter(r => !r.cc).map(r => r.email);
+    const ccList = recips.filter(r => r.cc).map(r => r.email);
+
+    const shape = pick("shape", SHAPES);
+    const plain = chance("plain", 0.5);
+    const tone = (t) => (plain ? CONTRACT : EXPAND).reduce((s, [re, r]) => s.replace(re, r), t);
+    const lc = (t) => /^I\b/.test(t) ? t : t.charAt(0).toLowerCase() + t.slice(1);
+
+    // Greeting
+    const hello = chance("hello", 0.25) ? "Hello" : "Dear";
+    let greet;
+    if (recips.length <= 3) greet = hello + " " + listJoin(recips.map(r => r.title ? `${r.title} ${r.surname}` : r.full.split(" ")[0])) + ",";
+    else greet = pick("greet", GROUP_GREETS[mode()]);
+
+    // Opening: who I am + why I'm writing, in one of several forms
+    const nm = name || "[Your first name]";
+    let whoBody = "a student at ANU";
+    if (stage || college) {
+      const desc = stage || "student";
+      whoBody = `${/^[aeiou]/i.test(desc) ? "an" : "a"} ${desc}${college ? " in the " + college : ""} at ANU`;
+    }
+    const opener = pick("opener", [
+      `My name is ${nm} and I am ${whoBody}.`,
+      `I am ${whoBody}.`,
+      `I am ${nm}, ${whoBody}.`,
+      ""
+    ]);
+    const topic = shape === "askfirst" ? pick("askfirst", ASK_FIRST) : pick("topic", TOPICS);
+    const openP = [opener, topic].filter(Boolean).join(" ");
+
+    // Building blocks
+    const P = ISSUES.find(i => i.id === primaryId);
+    const extraP = shape === "short" ? 0 : shape === "standard" ? 0.65 : 0.4;
+    const primaryP = P ? pick("p-" + P.id, P.primary) + (chance("x-" + P.id, extraP) ? " " + pick("x-" + P.id, P.extra) : "") : "";
+
+    const useTexts = shuffled(USES.filter(u => uses.includes(u.id)), "uses").map(u => u.text);
+    let useP = "";
+    if (useTexts.length) {
+      useP = `${pick("uselead", USE_LEADS)} ${listJoinOx(useTexts)}.`;
+      if (plans) useP += " " + pick("plansline", PLANS_LINE);
+      const tail = pick("usetail", USE_TAILS);
+      if (tail) useP += " " + tail;
+    } else if (plans) useP = pick("plansline", PLANS_LINE);
+    const identPs = shuffled(IDENT.filter(i => idents.includes(i.id)), "ident").map(i => pick("id-" + i.id, i.lines));
+
+    const secs = shuffled(ISSUES.filter(i => secIds.includes(i.id)), "sec");
+    let secP = "";
+    if (secs.length) {
+      const lead = shape === "short" ? "" : pick("seclead", SEC_LEADS);
+      if (lead.endsWith(":")) {
+        const lines = secs.map(i => "- " + lc(pick("s-" + i.id, i.secondary)).replace(/\.$/, ";"));
+        lines[lines.length - 1] = lines[lines.length - 1].replace(/;$/, ".");
+        secP = lead + "\n" + lines.join("\n");
+      } else {
+        secP = [lead, ...secs.map(i => pick("s-" + i.id, i.secondary))].filter(Boolean).join(" ");
+      }
+    }
+
+    // Asks: always "pause"; others included by chance; list or prose
+    let asks = [ASKS[0], ...shuffled(ASKS.slice(1).map((a, i) => ({ ...a, id: "a" + i })), "asks").filter((a) => chance("ask-" + a.id, 0.6))];
+    if (asks.length < 2) asks.push(ASKS[1]);
+    let askP = "";
+    if (shape === "askfirst" && chance("askfirst-noask", 0.5)) askP = "";
+    else {
+      const fmt = shape === "short" ? "prose" : pick("askfmt", ["numbered", "bullets", "prose", "prose"]);
+      if (fmt === "prose") {
+        const lead = pick("askprose", ASK_PROSE);
+        const items = asks.map((a, i) => pick("ap" + i, a.prose));
+        askP = `${lead} ${listJoin(items)}.`;
+      } else {
+        askP = pick("asklead", ASK_LEADS) + "\n" + asks.map((a, i) => (fmt === "numbered" ? `${i + 1}. ` : "- ") + pick("al" + i, a.list)).join("\n");
+      }
+    }
+
+    // Arrange by shape
+    const personal = [useP, ...identPs].filter(Boolean);
+    let gen;
+    if (shape === "personal") gen = [openP, ...personal, "\u0000OWN", primaryP, secP, askP];
+    else if (shape === "short") gen = [openP, primaryP, personal.join(" "), secP, "\u0000OWN", askP];
+    else if (shape === "askfirst") gen = [openP, primaryP, ...personal, secP, "\u0000OWN", askP];
+    else gen = [openP, primaryP, ...personal, secP, "\u0000OWN", askP];
+    gen.push(shape === "short" ? pick("closeS", CLOSES.slice(3)) : pick("close", CLOSES));
+
+    const paras = gen.filter(Boolean).map(t => t === "\u0000OWN" ? own : tone(t)).filter(Boolean);
+
+    const sig = [pick("signoff", SIGNOFFS), nm];
+    if (uid) sig.push(uid);
+    if (chance("meta", 0.6)) {
+      const meta = [stage ? stage.replace(/ student$/, "").replace(/^./, c => c.toUpperCase()) : "", college].filter(Boolean).join(", ");
+      if (meta) sig.push(meta);
+    }
+
+    const body = [greet, ...paras, sig.join("\n")].join("\n\n");
+    const subject = pick("subject", SUBJECTS);
+    const to = toList.join(", ");
+    const cc = ccList.join(", ");
+    current = { to, cc, bcc: BCC_EMAIL, subject, body };
+
+    // Render
+    $("oTo").textContent = to || "Choose at least one person";
+    $("oCc").textContent = cc;
+    $("ccRow").hidden = !cc;
+    $("oSubj").textContent = subject;
+    const esc = (s) => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+    $("oBody").innerHTML = esc(body).replace(/\[(Your first name|recipient)\]/g, "<mark>[$1]</mark>");
+
+    // Validation + links
+    const missing = [];
+    if (!name) missing.push("your first name");
+    if (!recips.length) missing.push("at least one recipient");
+    const ok = missing.length === 0;
+    const st = $("status");
+    if (ok) { st.textContent = `Ready to send to ${toList.length} ${toList.length === 1 ? "recipient" : "recipients"}.`; st.className = "status"; }
+    else { st.textContent = "Add " + listJoin(missing) + "."; st.className = "status bad"; }
+
+    const e = encodeURIComponent;
+    // keep commas literal between addresses; Outlook splits on them
+    const addrs = (list) => list.map(e).join(",");
+    const ccQ = (k) => (ccList.length ? `&${k}=${addrs(ccList)}` : "") + `&bcc=${e(BCC_EMAIL)}`;
+    // Outlook mobile app's own link scheme
+    $("outlookApp").href = `ms-outlook://compose?to=${addrs(toList)}${ccQ("cc")}&subject=${e(subject)}&body=${e(body)}`;
+    // Whatever email app the device uses by default (Apple Mail, Outlook desktop, etc.)
+    $("mailto").href = `mailto:${toList.join(",")}?${ccList.length ? "cc=" + e(ccList.join(",")) + "&" : ""}bcc=${e(BCC_EMAIL)}&subject=${e(subject)}&body=${e(body)}`;
+    ["outlookApp", "mailto"].forEach(id => $(id).setAttribute("aria-disabled", ok ? "false" : "true"));
+
+    saveDraft();
+  }
+
+  /* ===== Copy ===== */
+  const toast = (msg) => {
+    const t = $("toast"); t.textContent = msg; t.classList.add("on");
+    clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("on"), 1600);
+  };
+  function fallbackCopy(text) {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch (_) {}
+    ta.remove(); return ok;
+  }
+  const LABELS = { to: "Addresses", cc: "CC addresses", bcc: "Bcc address", subject: "Subject", body: "Letter" };
+  document.addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-copy]");
+    if (!b) return;
+    const key = b.dataset.copy, text = current[key] || "";
+    const done = () => toast(`${LABELS[key]} copied`);
+    const fail = () => { if (fallbackCopy(text)) done(); else toast("Couldn't copy. Select the text and copy it manually."); };
+    try { navigator.clipboard.writeText(text).then(done, fail); } catch (_) { fail(); }
+  });
+  ["outlookApp", "mailto"].forEach(id => $(id).addEventListener("click", (ev) => {
+    if ($(id).getAttribute("aria-disabled") === "true") { ev.preventDefault(); return; }
+    // App and email links can be blocked by some in-app browsers. If the page is still
+    // in front a moment later, nothing opened, so point people to a fallback.
+    let left = false;
+    const away = () => { left = true; };
+    document.addEventListener("visibilitychange", away, { once: true });
+    window.addEventListener("blur", away, { once: true });
+    setTimeout(() => {
+      if (left || document.visibilityState === "hidden") return;
+      const st = $("status");
+      st.textContent = "Nothing opened? Copy the letter and paste it into an email instead.";
+      st.className = "status bad";
+    }, 1500);
+  }));
+
+  $("reword").addEventListener("click", () => { seed = newSeed(); writeSeed(seed); compose(); toast("New wording"); });
+
+  /* ===== Draft memory (this browser only) ===== */
+  const KEY = "som-draft-v1";
+  function saveDraft() {
+    try {
+      const d = {};
+      document.querySelectorAll("#f input, #f select, #f textarea").forEach(el => {
+        d[el.id] = (el.type === "checkbox" || el.type === "radio") ? el.checked : el.value;
+      });
+      localStorage.setItem(KEY, JSON.stringify(d));
+    } catch (_) {}
+  }
+  function readDraft() {
+    try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch (_) { return null; }
+  }
+  function applyDraft(d) {
+    if (!d) return;
+    Object.entries(d).forEach(([id, v]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.type === "checkbox" || el.type === "radio") el.checked = !!v; else el.value = v;
+    });
+  }
+
+  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    $("outlookApp").hidden = false;
+    $("mailto").textContent = "Other email app";
+    $("mailto").classList.remove("primary");
+  }
+
+  // Option counts show primary (To) recipients only; Cc'd duplicates aren't counted
+  $("nKey").textContent = RECIPIENTS.filter(r => r.key && !r.cc).length;
+  $("nAll").textContent = RECIPIENTS.filter(r => (r.key || r.aqac) && !r.cc).length;
+
+  $("f").addEventListener("submit", (e) => e.preventDefault());
+  const onEdit = (e) => {
+    if (e.target.name === "mode" && e.type === "input") return;
+    compose();
+  };
+  $("f").addEventListener("input", onEdit);
+  $("f").addEventListener("change", onEdit);
+
+  const draft = readDraft();
+  // Always open on "Key decision-makers", even if this browser saved the other option
+  if (draft) { delete draft["mode-key"]; delete draft["mode-aqac"]; }
+  applyDraft(draft);
+  compose();
+})();
+</script>
+</body>
+</html>
