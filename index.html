@@ -6,7 +6,15 @@
 <style>html{-webkit-text-size-adjust:100%}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style>
 <title>Save Our Midsems</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="A student-built tool for writing to ANU decision-makers about moving mid-semester exams into the teaching break.">
+<meta name="description" content="ANU wants to move mid-semester exams into the teaching break from 2027. Write to the people deciding in two minutes.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Save Our Midsems">
+<meta property="og:description" content="ANU wants to move mid-semester exams into the teaching break from 2027. Write to the people deciding in two minutes.">
+<meta property="og:image" content="https://YOUR-USERNAME.github.io/savemidsems/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Save Our Midsems: keep exams out of the mid-semester break">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..100,700..900&display=swap">
@@ -165,9 +173,13 @@ input[type=checkbox]:focus-visible, input[type=radio]:focus-visible { outline: 2
 .btn.primary { background: var(--accent); color: var(--accent-ink); }
 .btn:hover { text-decoration: underline; }
 .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.btn[aria-disabled="true"] { opacity: .4; pointer-events: none; }
+.btn[aria-disabled="true"], .btn:disabled { opacity: .4; pointer-events: none; }
 .btn.sm { padding: 3px 8px; font-size: .8rem; font-weight: 600; }
 .fine { font-size: .84rem; color: var(--muted); margin: 0; }
+.more-addrs { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+.more-addrs:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.share { display: grid; gap: 8px; border: 1px solid var(--accent); padding: 10px 12px; background: var(--paper); }
+.share-q { margin: 0; }
 .addr-inline { font-family: var(--mono); font-size: .8rem; word-break: break-all; color: var(--ink); }
 
 footer { border-top: 1px solid var(--line); padding-block: 18px 34px; font-size: .86rem; color: var(--muted); display: grid; gap: 6px; }
@@ -287,7 +299,14 @@ footer p { margin: 0; max-width: 72ch; }
         <div class="btns">
           <a class="btn primary" id="outlookApp" hidden>Open in Outlook app</a>
           <a class="btn primary" id="mailto">Open in email app</a>
-          <button type="button" class="btn" data-copy="body">Copy letter</button>
+          <button type="button" class="btn" data-copy="body" id="copyLetter">Copy letter</button>
+        </div>
+        <div class="share" id="share" hidden>
+          <p class="share-q"><b>Sent it?</b> Send this to a friend.</p>
+          <div class="btns">
+            <button type="button" class="btn primary" id="shareBtn" hidden>Share</button>
+            <button type="button" class="btn" id="copyLink">Copy link</button>
+          </div>
         </div>
         <p class="fine">Use your ANU email. If a button doesn't work, copy and paste instead. Letters sent from these buttons are Bcc'd to the campaign so we can count them.</p>
       </div>
@@ -620,6 +639,20 @@ footer p { margin: 0; max-width: 72ch; }
 
   const checked = (sel) => [...document.querySelectorAll(sel + " input:checked")].map(i => i.value);
 
+  /* ===== Short address lists: first two, then "and N more" (tap to show all) ===== */
+  const expanded = { oTo: false, oCc: false };
+  function showAddrs(el, list) {
+    el.textContent = "";
+    if (list.length <= 3 || expanded[el.id]) { el.textContent = list.join(", "); return; }
+    el.append(list.slice(0, 2).join(", ") + " and ");
+    const more = document.createElement("button");
+    more.type = "button";
+    more.className = "more-addrs";
+    more.textContent = `${list.length - 2} more`;
+    more.addEventListener("click", () => { expanded[el.id] = true; el.textContent = list.join(", "); });
+    el.append(more);
+  }
+
   /* ===== Compose ===== */
   let current = { to: "", cc: "", bcc: "", subject: "", body: "" };
 
@@ -741,8 +774,8 @@ footer p { margin: 0; max-width: 72ch; }
     current = { to, cc, bcc: BCC_EMAIL, subject, body };
 
     // Render
-    $("oTo").textContent = to || "Choose at least one person";
-    $("oCc").textContent = cc;
+    showAddrs($("oTo"), toList);
+    showAddrs($("oCc"), ccList);
     $("ccRow").hidden = !cc;
     $("oSubj").textContent = subject;
     const esc = (s) => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
@@ -766,6 +799,8 @@ footer p { margin: 0; max-width: 72ch; }
     // Whatever email app the device uses by default (Apple Mail, Outlook desktop, etc.)
     $("mailto").href = `mailto:${toList.join(",")}?${ccList.length ? "cc=" + e(ccList.join(",")) + "&" : ""}bcc=${e(BCC_EMAIL)}&subject=${e(subject)}&body=${e(body)}`;
     ["outlookApp", "mailto"].forEach(id => $(id).setAttribute("aria-disabled", ok ? "false" : "true"));
+    // No copying the letter until it's signed with a first name
+    $("copyLetter").disabled = !ok;
 
     saveDraft();
   }
@@ -786,6 +821,7 @@ footer p { margin: 0; max-width: 72ch; }
   document.addEventListener("click", (ev) => {
     const b = ev.target.closest("[data-copy]");
     if (!b) return;
+    if (b.disabled) return;
     const key = b.dataset.copy, text = current[key] || "";
     const done = () => toast(`${LABELS[key]} copied`);
     const fail = () => { if (fallbackCopy(text)) done(); else toast("Couldn't copy. Select the text and copy it manually."); };
@@ -796,9 +832,20 @@ footer p { margin: 0; max-width: 72ch; }
     // App and email links can be blocked by some in-app browsers. If the page is still
     // in front a moment later, nothing opened, so point people to a fallback.
     let left = false;
-    const away = () => { left = true; };
-    document.addEventListener("visibilitychange", away, { once: true });
+    let leftAt = 0;
+    const away = () => { if (!left) { left = true; leftAt = Date.now(); } };
+    const back = () => {
+      // Only count it if they were away for over a second, i.e. the email app really opened
+      if (left && Date.now() - leftAt > 1000 && document.visibilityState === "visible") {
+        $("share").hidden = false;
+        document.removeEventListener("visibilitychange", onVis);
+        window.removeEventListener("focus", back);
+      }
+    };
+    const onVis = () => (document.visibilityState === "hidden" ? away() : back());
+    document.addEventListener("visibilitychange", onVis);
     window.addEventListener("blur", away, { once: true });
+    window.addEventListener("focus", back);
     setTimeout(() => {
       if (left || document.visibilityState === "hidden") return;
       const st = $("status");
@@ -806,6 +853,18 @@ footer p { margin: 0; max-width: 72ch; }
       st.className = "status bad";
     }, 1500);
   }));
+
+  /* ===== Share ===== */
+  const pageLink = () => location.href.split("#")[0];
+  if (navigator.share) $("shareBtn").hidden = false;
+  $("shareBtn").addEventListener("click", () => {
+    navigator.share({ title: "Save Our Midsems", text: "Two minutes to tell ANU to keep exams out of the mid-semester break:", url: pageLink() }).catch(() => {});
+  });
+  $("copyLink").addEventListener("click", () => {
+    const link = pageLink();
+    const ok = () => toast("Link copied");
+    try { navigator.clipboard.writeText(link).then(ok, () => { if (fallbackCopy(link)) ok(); }); } catch (_) { if (fallbackCopy(link)) ok(); }
+  });
 
   $("reword").addEventListener("click", () => { seed = newSeed(); writeSeed(seed); compose(); toast("New wording"); });
 
